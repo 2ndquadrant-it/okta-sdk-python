@@ -142,13 +142,52 @@ class GroupClient(APIClient):
             return (None, response, error)
         return (result, response, None)
 
+    async def assign_app_to_group(
+            self, application_id, group_id
+    ):
+        """
+        https://developer.okta.com/docs/reference/api/apps/#application-group-operations
+        Assign an app to a group
+        :return:
+        """
+        http_method = "put".upper()
+        api_url = format_url(f"""
+            {self._base_url}
+            /api/v1/apps/{application_id}/groups/{group_id}
+            """)
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+        body = {}
+        request, error = await self._request_executor.create_request(
+            http_method, api_url, body, headers
+        )
+
+        if error:
+            return (None, None, error)
+
+        response, error = await self._request_executor \
+            .execute(request, Group)
+
+        if error:
+            return (None, response, error)
+
+        try:
+            result = Group(
+                self.form_response_body(response.get_body())
+            )
+        except Exception as error:
+            return (None, response, error)
+        return (result, response, None)
+
     async def list_group_rules(
             self, query_params={}
     ):
         """
-        Lists all group rules for your organization.
-        Args:
-            query_params {dict}: Map of query parameters for request
+        lists all group rules for your organization.
+        args:
+            query_params {dict}: map of query parameters for request
             [query_params.limit] {str}
             [query_params.after] {str}
             [query_params.search] {str}
